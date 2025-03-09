@@ -1,0 +1,15 @@
+{
+  "version": "2.0",
+  "routeKey": "POST /todos",
+  "rawPath": "/todos",
+  "headers": {
+    "content-type": "application/json"
+  },
+  "requestContext": {
+    "http": {
+      "method": "POST"
+    }
+  },
+  "body": "{\"title\":\"Learn Oak on Lambda\"}",
+  "isBase64Encoded": false
+}

@@ -1,0 +1,14 @@
+{
+  "version": "2.0",
+  "routeKey": "GET /todos",
+  "rawPath": "/todos",
+  "headers": {
+    "accept": "*/*"
+  },
+  "requestContext": {
+    "http": {
+      "method": "GET"
+    }
+  },
+  "isBase64Encoded": false
+}

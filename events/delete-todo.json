@@ -1,0 +1,14 @@
+{
+  "version": "2.0",
+  "routeKey": "DELETE /todos/{id}",
+  "rawPath": "/todos/some-todo-id",
+  "headers": {
+    "accept": "*/*"
+  },
+  "requestContext": {
+    "http": {
+      "method": "DELETE"
+    }
+  },
+  "isBase64Encoded": false
+}
