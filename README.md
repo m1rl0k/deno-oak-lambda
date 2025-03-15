@@ -1,215 +1,206 @@
-# Deno Lambda with Oak and SAM Local
+# deno-zip
 
-A production-ready Oak web server running on AWS Lambda, with local testing support via SAM. This project demonstrates how to run a full-featured Oak web application on Lambda, complete with middleware, REST APIs, and file upload support.
+This example shows how to deploy a Deno app on Lambda with SnapStart enabled.
 
-## Features
+The Deno app is compiled to a single binary using `deno compile`, packaged into Zip file and deployed to Lambda with Web Adapter.
 
-- **Oak Web Framework** with API Gateway integration
-- **Middleware Stack**:
-  - Error handling with proper status codes
-  - Request logging with timing information
-  - CORS support for cross-origin requests
-  
-- **API Endpoints**:
-  - `GET /health` - Health check endpoint
-  - `GET /` - Welcome message
-  - `POST /echo` - Echo back request body
-  
-- **Todo API Example**:
-  - `GET /todos` - List all todos
-  - `GET /todos/:id` - Get a specific todo
-  - `POST /todos` - Create a new todo
-  - `PATCH /todos/:id` - Update a todo
-  - `DELETE /todos/:id` - Delete a todo
-  
-- **File Handling**:
-  - `POST /upload` - File upload endpoint
+We use `java11` runtime to get SnapStart support with one caveat: no runtime hooks.
+
+```yaml
+  DenoFunction:
+    Type: AWS::Serverless::Function 
+    Properties:
+      CodeUri: src
+      Handler: app
+      Runtime: java11
+      AutoPublishAlias: live
+      SnapStart:
+        ApplyOn: PublishedVersions
+      Architectures:
+        - x86_64
+      Layers:
+        - !Sub arn:aws:lambda:${AWS::Region}:753240598075:layer:LambdaAdapterLayerX86:24
+      MemorySize: 512
+      Environment:
+        Variables:
+          AWS_LAMBDA_EXEC_WRAPPER: /opt/bootstrap
+          DENO_DIR: /tmp
+          PORT: 8000
+      Events:
+        HelloWorld:
+          Type: HttpApi
+    Metadata:
+      BuildMethod: makefile
+```
 
 ## Prerequisites
 
-- Deno (v1.40 or later)
-- AWS SAM CLI
-- Docker
+- [Deno](https://deno.land/manual/getting_started/installation) installed
+- [AWS SAM CLI](https://docs.aws.amazon.com/serverless-application-model/latest/developerguide/serverless-sam-cli-install.html) installed
+- AWS credentials configured
 
-## Quick Start
+## Local Development and Testing
 
-1. Build the Lambda package:
-```bash
-./scripts/build.sh
+### Running the Deno Application Locally
+
+1. Navigate to the `src` directory:
+   ```shell
+   cd src
+   ```
+
+2. Run the Deno application:
+   ```shell
+   deno run --allow-net --allow-env main.ts
+   ```
+
+3. The application will start on port 8000 (or the port specified in the `PORT` environment variable).
+
+### Testing the API Endpoints
+
+You can test the API endpoints using curl:
+
+#### GET Request
+```shell
+curl http://localhost:8000/
 ```
-
-2. Test locally with SAM:
-```bash
-./scripts/sam-test.sh
-```
-
-## Testing Different Endpoints
-
-The `events/` directory contains example API Gateway event payloads for testing different endpoints:
-
-```bash
-# Build the project first
-./scripts/build.sh
-
-# Test health check endpoint
-sam local invoke DenoFunction --event events/health.json
-
-# Test creating a todo
-sam local invoke DenoFunction --event events/create-todo.json
-
-# Test the echo endpoint
-sam local invoke DenoFunction --event events/echo.json
-
-# Or use the convenience script to test with default event
-./scripts/sam-test.sh
-```
-
-Example responses:
-
+Expected response:
 ```json
-# Health check response
-{
-  "statusCode": 200,
-  "headers": {
-    "content-type": "application/json; charset=UTF-8",
-    "access-control-allow-origin": "*"
-  },
-  "body": {
-    "status": "healthy",
-    "timestamp": "2025-02-28T16:22:55.150Z"
-  }
-}
-
-# Echo endpoint response
-{
-  "statusCode": 200,
-  "headers": {
-    "content-type": "application/json; charset=UTF-8",
-    "access-control-allow-origin": "*"
-  },
-  "body": {
-    "message": "Echo endpoint",
-    "received": {
-      "message": "Hello Oak!",
-      "data": {
-        "foo": "bar"
-      }
-    },
-    "timestamp": "2025-02-28T16:22:45.994Z"
-  }
-}
+{"success":true,"message":"Hello World"}
 ```
 
-## Project Structure
-
+#### POST Request
+```shell
+curl -X POST -H "Content-Type: application/json" -d '{"name":"Test Item","description":"This is a test item"}' http://localhost:8000/items
 ```
-.
-├── src/               # Source code
-│   └── index.ts      # Oak server and Lambda handler
-├── events/           # Test event payloads
-│   └── create-todo.json
-├── scripts/          
-│   ├── build.sh      # Builds the Lambda package
-│   └── sam-test.sh   # Runs local tests with SAM
-├── direct-handler.js  # Lambda runtime handler
-└── template.yaml     # SAM template
-```
-
-## How It Works
-
-The project uses Oak as a web framework running on a custom Deno runtime:
-
-1. **Request Flow**:
-   - API Gateway receives the HTTP request
-   - Lambda invokes our Deno function
-   - Request is converted to Oak format
-   - Oak middleware processes the request
-   - Response is converted back to API Gateway format
-
-2. **Local Testing**:
-   - SAM Local emulates API Gateway and Lambda
-   - Provides the Lambda Runtime API
-   - Allows testing with real HTTP requests
-
-## API Routes
-
-After deploying, you can hit the endpoints using these commands (replace `{api_url}` with your API Gateway URL):
-
-```bash
-# Health check
-curl {api_url}/health
-
-# Welcome message
-curl {api_url}/
-
-# Echo endpoint
-curl -X POST {api_url}/echo \
-  -H "Content-Type: application/json" \
-  -d '{"message": "Hello Oak!"}'
-
-# Todo API
-# List todos
-curl {api_url}/todos
-
-# Get single todo
-curl {api_url}/todos/{id}
-
-# Create todo
-curl -X POST {api_url}/todos \
-  -H "Content-Type: application/json" \
-  -d '{"title": "Learn Oak"}'
-
-# Update todo
-curl -X PATCH {api_url}/todos/{id} \
-  -H "Content-Type: application/json" \
-  -d '{"completed": true}'
-
-# Delete todo
-curl -X DELETE {api_url}/todos/{id}
-
-# File upload
-curl -X POST {api_url}/upload \
-  -F "file=@./path/to/your/file.txt"
-```
-
-For local testing with SAM, use `http://127.0.0.1:3000` as the API URL.
-
-## Example Response
-
+Expected response:
 ```json
-{
-  "statusCode": 200,
-  "headers": {
-    "content-type": "application/json; charset=UTF-8",
-    "access-control-allow-origin": "*"
-  },
-  "body": {
-    "message": "Hello from Oak on Lambda!",
-    "timestamp": "2025-02-28T15:32:02.405Z"
-  }
-}
+{"success":true,"message":"Item created","item":{"name":"Test Item","description":"This is a test item"}}
 ```
 
-## Deployment
-
-The included `template.yaml` can be used to deploy your function to AWS:
-
-```bash
-sam deploy --guided
+#### PUT Request
+```shell
+curl -X PUT -H "Content-Type: application/json" -d '{"name":"Updated Item","description":"This item has been updated"}' http://localhost:8000/items/123
+```
+Expected response:
+```json
+{"success":true,"message":"Item 123 updated","item":{"id":"123","name":"Updated Item","description":"This item has been updated","updatedAt":"..."}}
 ```
 
-This will:
-1. Create an API Gateway HTTP API
-2. Deploy your Lambda function
-3. Set up the necessary IAM roles
-4. Provide you with an API endpoint
+#### DELETE Request
+```shell
+curl -X DELETE http://localhost:8000/items/123
+```
+Expected response:
+```json
+{"success":true,"message":"Item 123 deleted"}
+```
 
-## Local Development
+### Testing with AWS SAM Local
 
-For quick iterations during development:
+You can use AWS SAM CLI to test the Lambda function locally before deploying to AWS:
 
-1. Make changes to `src/index.ts`
-2. Run `./scripts/build.sh && ./scripts/sam-test.sh`
-3. Check the output in your terminal
+1. Build the application:
+   ```shell
+   sam build
+   ```
 
-The Oak server includes hot reloading in development mode when running locally.
+2. Invoke the Lambda function locally with a test event:
+   ```shell
+   sam local invoke DenoFunction -e events/get-root.json
+   ```
+
+3. Start a local API Gateway to test HTTP endpoints:
+   ```shell
+   sam local start-api --port 3000
+   ```
+   Then access the API at http://localhost:3000/
+
+### Testing on ARM64 Architecture
+
+If you're developing on an ARM-based machine (e.g., M1/M2/M3 Mac), you'll need to make the following adjustments:
+
+1. Update the template.yaml file to use ARM64 architecture and the corresponding Lambda layer:
+   ```yaml
+   Architectures:
+     - arm64
+   Layers:
+     - !Sub arn:aws:lambda:${AWS::Region}:753240598075:layer:LambdaAdapterLayerArm64:23
+   ```
+
+2. Update the Makefile in the src directory to compile for the correct architecture:
+   ```makefile
+   build-DenoFunction:
+     deno compile --allow-net --allow-env --target aarch64-unknown-linux-gnu -o $(ARTIFACTS_DIR)/app main.ts
+   ```
+
+3. Build and start the local API Gateway:
+   ```shell
+   sam build
+   sam local start-api --port 3000
+   ```
+
+4. Test the endpoints using curl:
+   ```shell
+   # Test root endpoint
+   curl http://localhost:3000/
+   
+   # Test categories endpoint
+   curl http://localhost:3000/categories/1/items
+   
+   # Test item detail endpoint
+   curl http://localhost:3000/categories/1/items/42
+   
+   # Test POST endpoint
+   curl -X POST -H "Content-Type: application/json" -d '{"name":"test item"}' http://localhost:3000/items
+   ```
+
+### Troubleshooting SAM Local Testing
+
+- **Port Already in Use**: If port 3000 is already in use, you can either specify a different port or kill the process:
+  ```shell
+  # Find and kill the process using port 3000
+  lsof -i :3000 | grep LISTEN | awk '{print $2}' | xargs kill -9
+  
+  # Or use a different port
+  sam local start-api --port 3001
+  ```
+
+- **Architecture Mismatch**: If you see errors like "cannot execute binary file" or "Exec format error", ensure your architecture settings match your development machine.
+
+- **Lambda Container Errors**: If you see init errors in the Lambda container, check the SAM CLI output for detailed error messages.
+
+### Using Test Event JSON Files
+
+The `events` directory contains sample event JSON files for testing with SAM local:
+
+- `get-root.json`: Simulates a GET request to the root endpoint
+- `post-item.json`: Simulates a POST request to create a new item
+- `put-item.json`: Simulates a PUT request to update an existing item
+
+## Build and Deploy to AWS
+
+Make sure Deno is already installed. Run the following commands on a x86_64 machine:
+
+```shell
+sam build 
+sam deploy -g
+```
+
+After deployment, you'll receive an API Gateway endpoint URL where your Deno application is accessible.
+
+## Troubleshooting
+
+### Common Issues
+
+1. **Request Body Parsing Issues**: This example uses Oak v17.1.4, which handles request bodies differently than older versions:
+   ```typescript
+   // For Oak v17.x (current version)
+   const body = await ctx.request.body({ type: "json" }).value;
+   ```
+
+2. **Port Already in Use**: If you get an "Address already in use" error, kill the process using the port:
+   ```shell
+   lsof -i :8000 | grep deno | awk '{print $2}' | xargs kill -9
+   ```
+
+3. **Lambda Layer Issues**: If you encounter issues with the Lambda Adapter Layer when testing locally, try running the Deno application directly instead of using `sam local invoke`.
