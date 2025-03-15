@@ -1,0 +1,38 @@
+{
+  "version": "2.0",
+  "routeKey": "PUT /items/{id}",
+  "rawPath": "/items/123",
+  "rawQueryString": "",
+  "headers": {
+    "accept": "*/*",
+    "content-length": "71",
+    "content-type": "application/json",
+    "host": "lambda-url.us-east-1.on.aws",
+    "user-agent": "curl/7.64.1",
+    "x-forwarded-proto": "https",
+    "x-forwarded-port": "443"
+  },
+  "requestContext": {
+    "accountId": "123456789012",
+    "apiId": "api-id",
+    "domainName": "lambda-url.us-east-1.on.aws",
+    "domainPrefix": "lambda-url",
+    "http": {
+      "method": "PUT",
+      "path": "/items/123",
+      "protocol": "HTTP/1.1",
+      "sourceIp": "127.0.0.1",
+      "userAgent": "curl/7.64.1"
+    },
+    "requestId": "request-id",
+    "routeKey": "PUT /items/{id}",
+    "stage": "$default",
+    "time": "09/Mar/2025:16:10:00 +0000",
+    "timeEpoch": 1709996400000
+  },
+  "pathParameters": {
+    "id": "123"
+  },
+  "body": "{\"name\":\"Updated Item\",\"description\":\"This item has been updated\"}",
+  "isBase64Encoded": false
+}
