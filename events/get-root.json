@@ -1,0 +1,33 @@
+{
+  "version": "2.0",
+  "routeKey": "GET /",
+  "rawPath": "/",
+  "rawQueryString": "",
+  "headers": {
+    "accept": "*/*",
+    "content-length": "0",
+    "host": "lambda-url.us-east-1.on.aws",
+    "user-agent": "curl/7.64.1",
+    "x-forwarded-proto": "https",
+    "x-forwarded-port": "443"
+  },
+  "requestContext": {
+    "accountId": "123456789012",
+    "apiId": "api-id",
+    "domainName": "lambda-url.us-east-1.on.aws",
+    "domainPrefix": "lambda-url",
+    "http": {
+      "method": "GET",
+      "path": "/",
+      "protocol": "HTTP/1.1",
+      "sourceIp": "127.0.0.1",
+      "userAgent": "curl/7.64.1"
+    },
+    "requestId": "request-id",
+    "routeKey": "GET /",
+    "stage": "$default",
+    "time": "09/Mar/2025:16:10:00 +0000",
+    "timeEpoch": 1709996400000
+  },
+  "isBase64Encoded": false
+}
