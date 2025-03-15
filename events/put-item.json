@@ -1,0 +1,35 @@
+{
+  "version": "2.0",
+  "routeKey": "POST /items",
+  "rawPath": "/items",
+  "rawQueryString": "",
+  "headers": {
+    "accept": "*/*",
+    "content-length": "62",
+    "content-type": "application/json",
+    "host": "lambda-url.us-east-1.on.aws",
+    "user-agent": "curl/7.64.1",
+    "x-forwarded-proto": "https",
+    "x-forwarded-port": "443"
+  },
+  "requestContext": {
+    "accountId": "123456789012",
+    "apiId": "api-id",
+    "domainName": "lambda-url.us-east-1.on.aws",
+    "domainPrefix": "lambda-url",
+    "http": {
+      "method": "POST",
+      "path": "/items",
+      "protocol": "HTTP/1.1",
+      "sourceIp": "127.0.0.1",
+      "userAgent": "curl/7.64.1"
+    },
+    "requestId": "request-id",
+    "routeKey": "POST /items",
+    "stage": "$default",
+    "time": "09/Mar/2025:16:10:00 +0000",
+    "timeEpoch": 1709996400000
+  },
+  "body": "{\"name\":\"Test Item\",\"description\":\"This is a test item\"}",
+  "isBase64Encoded": false
+}
